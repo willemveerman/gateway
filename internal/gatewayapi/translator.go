@@ -261,6 +261,39 @@ func (t *Translator) Translate(resources *Resources) (*TranslateResult, error) {
 		extServerPolicies, backends, xdsIR, infraIR), translateErrs
 }
 
+// TranslateToXDS converts Gateway API resources directly to xDS format
+func (t *Translator) TranslateToXDS(resources *Resources) (*types.ResourceVersionTable, error) {
+	// First, translate Gateway API resources to IR
+	translateResult, err := t.Translate(resources)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize a new XDS translator
+	xdsTranslator := &xds.Translator{
+		GlobalRateLimit: &xds.GlobalRateLimitSettings{
+			ServiceURL:  "", // Set this if needed
+			Timeout:     0,  // Set this if needed
+			FailClosed:  false,
+		},
+		ExtensionManager: nil, // Set this if needed
+		FilterOrder:      nil, // Set this if needed
+	}
+
+	// Translate IR to xDS for each Gateway
+	var allXdsResources types.ResourceVersionTable
+	for _, xdsIR := range translateResult.XdsIR {
+		xdsResources, err := xdsTranslator.Translate(xdsIR)
+		if err != nil {
+			return nil, err
+		}
+		// Merge the resources
+		allXdsResources.Merge(xdsResources)
+	}
+
+	return &allXdsResources, nil
+}
+
 // GetRelevantGateways returns GatewayContexts, containing a copy of the original
 // Gateway with the Listener statuses reset.
 func (t *Translator) GetRelevantGateways(resources *Resources) []*GatewayContext {
