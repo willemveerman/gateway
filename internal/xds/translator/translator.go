@@ -959,3 +959,24 @@ func buildXdsUpstreamTLSSocketWthCert(tlsConfig *ir.TLSUpstreamConfig) (*corev3.
 		},
 	}, nil
 }
+import (
+	"github.com/envoyproxy/gateway/api/v1alpha2"
+)
+
+// TranslateGatewayAPI translates Gateway API resources to xDS resources.
+func TranslateGatewayAPI(gatewayResources *v1alpha2.GatewayResources) (*types.ResourceVersionTable, error) {
+	// Convert Gateway API resources to IR
+	xdsIR, err := gatewayapi.ToIR(gatewayResources)
+	if err != nil {
+		return nil, err
+	}
+
+	// Translate IR to xDS
+	translator := &Translator{}
+	xdsResources, err := translator.Translate(xdsIR)
+	if err != nil {
+		return nil, err
+	}
+
+	return xdsResources, nil
+}

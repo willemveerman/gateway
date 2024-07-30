@@ -2308,3 +2308,12 @@ type ResourceMetadata struct {
 	// SectionName is the name of a section of a resource
 	SectionName string `json:"sectionName,omitempty" yaml:"sectionName,omitempty"`
 }
+import (
+	"github.com/envoyproxy/gateway/api/v1alpha2"
+)
+
+// FromGatewayAPI converts Gateway API resources to the IR representation.
+func FromGatewayAPI(gatewayResources *v1alpha2.GatewayResources) (*Xds, error) {
+	// TODO: Implement conversion from Gateway API to IR
+	return nil, nil
+}
