@@ -2309,11 +2309,47 @@ type ResourceMetadata struct {
 	SectionName string `json:"sectionName,omitempty" yaml:"sectionName,omitempty"`
 }
 import (
-	"github.com/envoyproxy/gateway/api/v1alpha2"
+	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 // FromGatewayAPI converts Gateway API resources to the IR representation.
-func FromGatewayAPI(gatewayResources *v1alpha2.GatewayResources) (*Xds, error) {
-	// TODO: Implement conversion from Gateway API to IR
-	return nil, nil
+func FromGatewayAPI(gatewayResources *gatewayv1alpha2.GatewayClassConfig) (*Xds, error) {
+	xdsIR := &Xds{}
+
+	// Convert Listeners
+	for _, listener := range gatewayResources.Spec.Listeners {
+		switch listener.Protocol {
+		case gatewayv1alpha2.HTTPProtocolType:
+			httpListener := &HTTPListener{
+				CoreListenerDetails: CoreListenerDetails{
+					Name:    listener.Name,
+					Address: listener.Address,
+					Port:    listener.Port,
+				},
+			}
+			xdsIR.HTTP = append(xdsIR.HTTP, httpListener)
+		case gatewayv1alpha2.TCPProtocolType:
+			tcpListener := &TCPListener{
+				CoreListenerDetails: CoreListenerDetails{
+					Name:    listener.Name,
+					Address: listener.Address,
+					Port:    listener.Port,
+				},
+			}
+			xdsIR.TCP = append(xdsIR.TCP, tcpListener)
+		case gatewayv1alpha2.UDPProtocolType:
+			udpListener := &UDPListener{
+				CoreListenerDetails: CoreListenerDetails{
+					Name:    listener.Name,
+					Address: listener.Address,
+					Port:    listener.Port,
+				},
+			}
+			xdsIR.UDP = append(xdsIR.UDP, udpListener)
+		}
+	}
+
+	// TODO: Convert other Gateway API resources like Routes, TLS, etc
+
+	return xdsIR, nil
 }
