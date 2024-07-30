@@ -188,3 +188,19 @@ func (t *ResourceVersionTable) SetResources(rType resourcev3.Type, xdsResources 
 
 	t.XdsResources[rType] = xdsResources
 }
+
+// Merge combines the resources from another ResourceVersionTable into this one
+func (t *ResourceVersionTable) Merge(other *ResourceVersionTable) {
+	if t.XdsResources == nil {
+		t.XdsResources = make(XdsResources)
+	}
+
+	for rType, resources := range other.XdsResources {
+		if t.XdsResources[rType] == nil {
+			t.XdsResources[rType] = make([]types.Resource, 0)
+		}
+		t.XdsResources[rType] = append(t.XdsResources[rType], resources...)
+	}
+
+	t.EnvoyPatchPolicyStatuses = append(t.EnvoyPatchPolicyStatuses, other.EnvoyPatchPolicyStatuses...)
+}
