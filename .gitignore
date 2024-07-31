@@ -42,3 +42,4 @@ charts/gateway-addons-helm/dashboards/vendor/
 .*.swp
 
 *.tar.gz
+.aider*
